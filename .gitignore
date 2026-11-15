@@ -1,0 +1,18 @@
+# 依赖
+node_modules/
+app/server/node_modules/
+
+# 构建产物
+*.fpk
+.tmp/
+.verify/
+
+# 运行时数据
+.runtime/
+.config/
+*.log
+
+# 开发工具缓存
+tools/node_modules/
+.uitest/
+.shots/
