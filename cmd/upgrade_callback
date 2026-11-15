@@ -1,0 +1,4 @@
+#!/bin/bash
+# 升级后：清理旧的封面缓存，避免格式变更导致读不出来
+rm -rf "$TRIM_PKGVAR/covers" 2>/dev/null
+exit 0

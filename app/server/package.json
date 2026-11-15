@@ -1,0 +1,15 @@
+{
+  "name": "mycomusic-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "飞牛 fnOS 音乐库应用后端",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "iconv-lite": "0.6.3",
+    "music-metadata": "^7.14.0"
+  }
+}

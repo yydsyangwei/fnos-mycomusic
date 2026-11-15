@@ -1,0 +1,8 @@
+#!/bin/bash
+# 卸载前：按用户选择决定是否删除曲库索引
+
+if [ "$wizard_remove_index" = "remove" ]; then
+    rm -rf "$TRIM_PKGVAR"
+fi
+
+exit 0

@@ -1,0 +1,17 @@
+[
+  {
+    "stepTitle": "卸载选项",
+    "items": [
+      {
+        "type": "select",
+        "field": "wizard_remove_index",
+        "label": "曲库索引和封面缓存",
+        "initValue": "keep",
+        "options": [
+          { "label": "保留（重新安装后可以直接用回）", "value": "keep" },
+          { "label": "一并删除", "value": "remove" }
+        ]
+      }
+    ]
+  }
+]

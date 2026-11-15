@@ -1,0 +1,9 @@
+#!/bin/bash
+# 访问权限（授权目录）变化后重启服务，
+# 否则进程里的 TRIM_DATA_ACCESSIBLE_PATHS 还是旧值，应用会看不到新目录。
+
+DIR="$(dirname "$0")"
+
+"$DIR/main" stop
+sleep 1
+"$DIR/main" start

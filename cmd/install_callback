@@ -1,0 +1,12 @@
+#!/bin/bash
+# 安装后：准备数据目录，检查运行时
+
+mkdir -p "$TRIM_PKGVAR" "$TRIM_PKGETC"
+
+if [ ! -x /var/apps/nodejs_v22/target/bin/node ]; then
+    echo "缺少 Node.js 运行时（nodejs_v22），请先在应用中心安装后重试。" > "$TRIM_TEMP_LOGFILE"
+    exit 1
+fi
+
+chown -R "$TRIM_USERNAME:$TRIM_GROUPNAME" "$TRIM_PKGVAR" "$TRIM_PKGETC" 2>/dev/null
+exit 0

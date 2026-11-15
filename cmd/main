@@ -1,0 +1,109 @@
+#!/bin/bash
+# 我的音乐库 · 启停脚本
+#
+# start  : 启动 Node 服务（走统一网关的 Unix Socket）
+# stop   : 优雅停止
+# status : 运行返回 0，未运行返回 3
+
+LOG_FILE="${TRIM_PKGVAR}/app.log"
+PID_FILE="${TRIM_PKGVAR}/app.pid"
+
+APP_DIR="${TRIM_APPDEST}/server"
+SOCKET_PATH="${TRIM_APPDEST}/app.sock"
+GATEWAY_PREFIX="/app/mycomusic"
+NODE_BIN=/var/apps/nodejs_v22/target/bin
+
+log_msg() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$LOG_FILE"
+}
+
+pid_running() {
+    [ -f "$PID_FILE" ] || return 1
+    local pid
+    pid="$(head -n 1 "$PID_FILE" | tr -d '[:space:]')"
+    [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null
+}
+
+start_app() {
+    if pid_running; then
+        return 0
+    fi
+
+    # 运行时依赖检查：缺 Node 时给出可读错误，而不是让用户看到空白页
+    if [ ! -x "${NODE_BIN}/node" ]; then
+        echo "缺少 Node.js 运行时（nodejs_v22），请先在应用中心安装。" > "$TRIM_TEMP_LOGFILE"
+        exit 1
+    fi
+
+    mkdir -p "$TRIM_PKGVAR" "$TRIM_PKGETC"
+    rm -f "$SOCKET_PATH" 2>/dev/null
+
+    log_msg "starting ${TRIM_APPNAME} ${TRIM_APPVER} (node: ${NODE_BIN}/node)"
+    cd "$APP_DIR" || exit 1
+
+    PATH="${NODE_BIN}:${PATH}" \
+    TRIM_PKGVAR="$TRIM_PKGVAR" \
+    TRIM_PKGETC="$TRIM_PKGETC" \
+    TRIM_DATA_SHARE_PATHS="$TRIM_DATA_SHARE_PATHS" \
+    TRIM_DATA_ACCESSIBLE_PATHS="$TRIM_DATA_ACCESSIBLE_PATHS" \
+    GATEWAY_PREFIX="$GATEWAY_PREFIX" \
+    SOCKET_PATH="$SOCKET_PATH" \
+    node server.js >> "$LOG_FILE" 2>&1 &
+
+    echo $! > "$PID_FILE"
+
+    # 等 Socket 出现，最多 10 秒
+    local i=0
+    while [ $i -lt 20 ]; do
+        if [ -S "$SOCKET_PATH" ]; then
+            log_msg "socket ready: $SOCKET_PATH"
+            return 0
+        fi
+        sleep 0.5
+        i=$((i + 1))
+    done
+
+    echo "服务启动超时，请查看日志：${LOG_FILE}" > "$TRIM_TEMP_LOGFILE"
+    log_msg "start timeout"
+    exit 1
+}
+
+stop_app() {
+    if ! pid_running; then
+        rm -f "$PID_FILE" "$SOCKET_PATH"
+        return 0
+    fi
+
+    local pid
+    pid="$(head -n 1 "$PID_FILE" | tr -d '[:space:]')"
+    log_msg "stopping pid $pid"
+
+    kill -TERM "$pid" 2>/dev/null
+    local i=0
+    while kill -0 "$pid" 2>/dev/null && [ $i -lt 10 ]; do
+        sleep 1
+        i=$((i + 1))
+    done
+    kill -KILL "$pid" 2>/dev/null
+
+    rm -f "$PID_FILE" "$SOCKET_PATH"
+}
+
+case "$1" in
+    start)
+        start_app
+        ;;
+    stop)
+        stop_app
+        ;;
+    status)
+        if pid_running; then
+            exit 0
+        fi
+        exit 3
+        ;;
+    *)
+        echo "Unknown command: $1" > "$TRIM_TEMP_LOGFILE"
+        exit 1
+        ;;
+esac

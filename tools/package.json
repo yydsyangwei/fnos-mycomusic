@@ -1,0 +1,8 @@
+{
+  "name": "mycomusic-devtools",
+  "private": true,
+  "description": "本地界面测试：pnpm install && node ui-test.js ../app/server/public/index.html",
+  "devDependencies": {
+    "jsdom": "^31.0.1"
+  }
+}
